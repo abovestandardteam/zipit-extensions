@@ -1,0 +1,59 @@
+body {
+    margin: 0px;
+}
+
+.popup-container {
+    height: 500px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    border-radius: 10px;
+    max-width: 350px;
+    width: 350px;
+    background-color: #0b051b;
+    box-shadow: none;
+    border: none;
+    border-radius: 0px;
+    margin: 0px;
+    border: 0.5px solid rgba(255, 255, 255, 0.2);
+}
+
+.zipit-logo {
+    margin-bottom: 30px;
+}
+
+.popup-container h1 {
+    font-size: 24px;
+    margin-bottom: 20px;
+    color: white;
+}
+
+.popup-container button {
+    padding: 14px 20px;
+    font-size: 16px;
+    /* background-color: #0073e6; */
+    /* background: linear-gradient(88deg, #150a2a -3.07%, #2e1c4b 46.17%, #342052 98.45%); */
+    color: white;
+    border: none;
+    border-radius: 0px;
+    cursor: pointer;
+    background: #7000ff;
+    color: white;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Jura';
+}
+
+.popup-container button svg {
+    margin-right: 10px;
+}
+
+.popup-container p {
+    font-size: 16px;
+    color: white;
+    margin-top: 0px;
+}

@@ -1,0 +1,49 @@
+{
+  "manifest_version": 2,
+  "name": "ZIPIT Steam Market Trade Checker",
+  "version": "1.1",
+  "description": "Help with verifying trades for Counter-Strike (CS:GO & CS2) items on Zipit.gg",
+  "permissions": [
+    "cookies",
+    "storage",
+    "activeTab",
+    "alarms",
+    "webNavigation",
+    "https://steamcommunity.com/*",
+    "*://*.zipit.gg/*",
+    "*://api.steampowered.com/*",
+    "http://localhost:3000/*"
+  ],
+  "background": {
+    "scripts": ["background.js"]
+  },
+  "icons": {
+    "16": "icons/16.png",
+    "48": "icons/48.png",
+    "128": "icons/128.png"
+  },
+  "browser_action": {
+    "default_popup": "popup.html"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://zipit.gg/*",
+        "https://staging.zipit.gg/*",
+        "https://cms.zipit.gg/*",
+        "https://staging.cms.zipit.gg/*",
+        "http://localhost:3000/*"
+      ],
+      "js": ["content.js"]
+    }
+  ],
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "a395020bf81891e3a37db884b38acca2be3471e7@temporary-addon"
+    }
+  },
+  "web_accessible_resources": ["content.js"],
+  "externally_connectable": {
+    "matches": ["http://localhost:3000/*"]
+  }
+}
