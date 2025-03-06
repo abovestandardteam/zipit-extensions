@@ -101,7 +101,7 @@ chrome.runtime.onInstalled.addListener(async () => {
   chrome.storage.local.set({ extensionInstalled: true });
   chrome.alarms.create("fetchSteamTokenAlarm", {
     // periodInMinutes: 1440, // 24 hours
-    periodInMinutes: 30, //  30 hours
+    periodInMinutes: 10, 
   });
 });
 
