@@ -78,7 +78,7 @@ async function fetchSteamToken() {
 async function updateExtensionStatus(steamID: any, status: any) {
   try {
     const req = { extension_status: status, steamid: steamID };
-    const res = await fetch(`${environment.zipit_base_api_url}/extension_status`, {
+    const res = await fetch(`${environment.staging_zipit_base_api_url}/extension_status`, {
       credentials: "include",
       method: "POST",
       headers: { "Content-Type": "application/json" },

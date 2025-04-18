@@ -1,5 +1,5 @@
 export const environment = {
-  zipit_base_api_url: "https://staging.cms.zipit.gg/api",
+  staging_zipit_base_api_url: "https://staging.cms.zipit.gg/api",
   zipit_base_api_url_live: "https://cms.zipit.gg/api",
-  zipit_login:"https://cms.zipit.gg/auth"
+  zipit_login: "https://cms.zipit.gg/auth"
 };

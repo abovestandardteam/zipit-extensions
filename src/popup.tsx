@@ -20,7 +20,9 @@ const Popup: React.FC = () => {
 
       const body = await resp.text();
       const match = /data-loyalty_webapi_token="&quot;([a-zA-Z0-9_.-]+)&quot;"/.exec(body);
-      console.log(match, "match");
+      const sessionIDMatch = /g_sessionID\s*=\s*"([a-zA-Z0-9]+)"/.exec(body);
+
+   
 
       if (!match || match.length < 2) {
         setIsLoggedIn(false);
@@ -31,16 +33,14 @@ const Popup: React.FC = () => {
       const token = match[1];
       setSteamLoginSecure(token);
       const steamID = extractSteamID(body);
-      if (steamID) {
-        // If Steam ID is found, the user is logged in.
-        setIsLoggedIn(true);
-      } else {
-        setIsLoggedIn(false);
+      if (!steamID || !sessionIDMatch?.[1]) {
+        throw new Error("Failed to extract steamID or sessionID");
       }
-
+      setIsLoggedIn(true);
       const req = {
         steamloginsecure: `${steamID + "||" + token}`,
         steamid: steamID,
+        sessionid: sessionIDMatch[1],
       };
 
       const res = await fetch(`${environment.zipit_base_api_url_live}/add_steamloginsecure`, {
@@ -52,16 +52,9 @@ const Popup: React.FC = () => {
         body: JSON.stringify(req),
       });
 
-      console.log(req, "req------------");
 
       const resBody = await res.json(); // Assuming the backend returns JSON data
       console.log(resBody, "Backend response");
-
-      //   if (steamID) {
-      //     throw new Error("user is not logged into the expected steam account");
-      //   }
-
-      console.log(token, "token");
 
       // Store the token in Chrome storage
       chrome.storage.local.set({ [`steamToken`]: { token: token, steamID: steamID } }, () => {

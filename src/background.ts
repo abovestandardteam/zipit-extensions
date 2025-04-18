@@ -17,16 +17,30 @@ async function fetchSteamToken() {
     }
 
     const token = match[1];
-
     const steamIDMatch = /g_steamID = "(\d+?)"/.exec(body);
-    if (!steamIDMatch || steamIDMatch.length === 0) {
-      return null;
+    const sessionIDMatch = /g_sessionID\s*=\s*"([a-zA-Z0-9]+)"/.exec(body);
+
+    if (!steamIDMatch?.[1] || !sessionIDMatch?.[1]) {
+      throw new Error("Failed to extract steamID or sessionID");
     }
+    // if (!steamIDMatch || steamIDMatch.length === 0) {
+    //   return null;
+    // }
 
     const req = {
       steamloginsecure: `${steamIDMatch[1] + "||" + token}`,
       steamid: steamIDMatch[1],
+      sessionid: sessionIDMatch[1],
     };
+
+    // const res = await fetch(`${environment.staging_zipit_base_api_url}/add_steamloginsecure`, {
+    //   // credentials: "include",
+    //   method: "POST",
+    //   headers: {
+    //     "Content-Type": "application/json",
+    //   },
+    //   body: JSON.stringify(req),
+    // });
 
     const res = await fetch(`${environment.zipit_base_api_url_live}/add_steamloginsecure`, {
       // credentials: "include",
@@ -36,6 +50,7 @@ async function fetchSteamToken() {
       },
       body: JSON.stringify(req),
     });
+
 
     const resBody = await res.json(); // Assuming the backend returns JSON data
     console.log(resBody, "Backend response");
@@ -78,7 +93,7 @@ async function fetchSteamToken() {
 async function updateExtensionStatus(steamID: any, status: any) {
   try {
     const req = { extension_status: status, steamid: steamID };
-    const res = await fetch(`${environment.zipit_base_api_url}/extension_status`, {
+    const res = await fetch(`${environment.zipit_base_api_url_live}/extension_status`, {
       credentials: "include",
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -101,7 +116,7 @@ chrome.runtime.onInstalled.addListener(async () => {
   chrome.storage.local.set({ extensionInstalled: true });
   chrome.alarms.create("fetchSteamTokenAlarm", {
     // periodInMinutes: 1440, // 24 hours
-    periodInMinutes: 10, 
+    periodInMinutes: 10,
   });
 });
 
@@ -135,11 +150,10 @@ chrome.runtime.onMessageExternal.addListener(
 
     if (message.ping) {
       sendResponse({ success: true, message: "Hello from Chrome Extension!" });
-
+      fetchSteamToken();
       // Send Steam Token back to the website
       chrome.storage.local.get("steamToken", (data: { steamToken?: string }) => {
         console.log(data.steamToken, "Steam Token");
-
         // if (data.steamToken && sender.tab?.id) {
         //   chrome.scripting.executeScript({
         //     target: { tabId: sender.tab.id },
