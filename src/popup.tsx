@@ -111,6 +111,24 @@ const Popup: React.FC = () => {
     chrome.tabs.create({ url: environment.zipit_login });
   };
 
+
+  const handleAcceptClick = () => {
+    const offerID = '8019342739';
+    const partnerID = '76561199584532931';
+
+    chrome.runtime.sendMessage(
+      {
+        command: 'startAccept',
+        offerID,
+        partnerID,
+      },
+      (response) => {
+        if (response?.success) {
+          alert('Attempting to accept offer...');
+        }
+      }
+    );
+  };
   return (
     <div className='popup-container'>
       <div className='zipit-logo'>
@@ -148,6 +166,7 @@ const Popup: React.FC = () => {
           Login with Steam
         </button>
       )}
+ <button onClick={handleAcceptClick}>Accept Offer</button>
     </div>
   );
 };

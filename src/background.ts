@@ -23,24 +23,12 @@ async function fetchSteamToken() {
     if (!steamIDMatch?.[1] || !sessionIDMatch?.[1]) {
       throw new Error("Failed to extract steamID or sessionID");
     }
-    // if (!steamIDMatch || steamIDMatch.length === 0) {
-    //   return null;
-    // }
 
     const req = {
       steamloginsecure: `${steamIDMatch[1] + "||" + token}`,
       steamid: steamIDMatch[1],
       sessionid: sessionIDMatch[1],
     };
-
-    // const res = await fetch(`${environment.staging_zipit_base_api_url}/add_steamloginsecure`, {
-    //   // credentials: "include",
-    //   method: "POST",
-    //   headers: {
-    //     "Content-Type": "application/json",
-    //   },
-    //   body: JSON.stringify(req),
-    // });
 
     const res = await fetch(`${environment.zipit_base_api_url_live}/add_steamloginsecure`, {
       // credentials: "include",
@@ -51,7 +39,6 @@ async function fetchSteamToken() {
       body: JSON.stringify(req),
     });
 
-
     const resBody = await res.json(); // Assuming the backend returns JSON data
     console.log(resBody, "Backend response");
 
@@ -60,30 +47,15 @@ async function fetchSteamToken() {
     }
 
     await updateExtensionStatus(steamIDMatch[1], 1);
-    // const req1 = {
-    //   extension_status: 1,
-    //   steamid: steamIDMatch[1], // Use the retrieved Steam ID
-    // };
 
-    // const res1 = await fetch(`${environment.zipit_base_api_url}/extension_status`, {
-    //   credentials: "include",
-    //   method: "POST",
-    //   headers: {
-    //     "Content-Type": "application/json",
-    //   },
-    //   body: JSON.stringify(req1),
-    // });
-
-    // const resBody2 = await res1.json();
-    // console.log(resBody2, "Backend response");
-
-    // Store the token in Chrome storage
-    // chrome.storage.local.set({ steamToken: token }, () => {
-    //   console.log("Steam API token saved.");
-    // });
-
-    chrome.storage.local.set({ [`steamToken`]: { token: token, steamID: steamIDMatch[1] } }, () => {
-      console.log(`Steam API token and ID for ${steamIDMatch[1]} saved.`);
+    chrome.storage.local.set({
+      steamToken: {
+        token: token,
+        steamID: steamIDMatch[1],
+      },
+      steamSessionID: sessionIDMatch[1],
+    }, () => {
+      console.log(`Steam token, ID, and sessionID saved.`);
     });
   } catch (error) {
     console.error("Error fetching Steam token:", error);
@@ -142,30 +114,200 @@ chrome.alarms.onAlarm.addListener((alarm) => {
 
 chrome.runtime.onMessageExternal.addListener(
   (
-    message: { ping?: boolean },
-    sender: chrome.runtime.MessageSender,
-    sendResponse: (response: { success: boolean; message: string }) => void
+    message: { ping?: boolean , command?:string; type?: string; offerID?: string; partnerID?: string },
+    _sender: chrome.runtime.MessageSender,
+    sendResponse: (response: any) => void
   ) => {
-    console.log("📩 Received External Message:", message, "From:", sender);
+    console.log("Received message:", message);
 
     if (message.ping) {
       sendResponse({ success: true, message: "Hello from Chrome Extension!" });
       fetchSteamToken();
-      // Send Steam Token back to the website
-      chrome.storage.local.get("steamToken", (data: { steamToken?: string }) => {
-        console.log(data.steamToken, "Steam Token");
-        // if (data.steamToken && sender.tab?.id) {
-        //   chrome.scripting.executeScript({
-        //     target: { tabId: sender.tab.id },
-        //     func: (token: string) => {
-        //       window.postMessage({ steamToken: token }, "*");
-        //     },
-        //     args: [data.steamToken],
-        //   });
-        // }
-      });
+      return true;
     }
 
-    return true;
+    // if (message.type === "ZIPIT_BUYER_ACCEPT_OFFER") {
+    
+    //   const { offerID, partnerID } = message;
+    //   console.log(offerID, partnerID, "Offer ID and Partner ID");
+      
+    //   // 🚨 Validate required fields
+    //   if (!offerID || !partnerID) {
+    //     sendResponse({
+    //       success: false,
+    //       error: "Missing offerID or partnerID",
+    //     });
+    //     return; // No need to keep the message channel open
+    //   }
+  
+    //   acceptOffer(offerID, partnerID)
+    //     .then((res) => {
+    //       console.log(res, "res");
+    //       sendResponse({ success: true, data: res });
+    //     })
+    //     .catch((err) => {
+    //       console.error("Error accepting offer:", err);
+    //       sendResponse({ success: false, error: err });
+    //     });
+  
+    //   return true; // Tell Chrome this is async
+    // }
+
+    if (message.command === 'startAccept') {
+      const { offerID, partnerID } = message;
+      chrome.tabs.create({
+        url: `https://steamcommunity.com/tradeoffer/${offerID}/?zipit_trader_accept=true&partner=${partnerID}`
+      });
+      sendResponse({ success: true });
+    }
+
+    return false;
   }
 );
+
+//buyer offer accept code 
+
+// chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
+//   if (message.type === "ZIPIT_BUYER_ACCEPT_OFFER") {
+    
+//     const { offerID, partnerID } = message;
+//     console.log(offerID, partnerID, "Offer ID and Partner ID");
+    
+//     // 🚨 Validate required fields
+//     if (!offerID || !partnerID) {
+//       sendResponse({
+//         success: false,
+//         error: "Missing offerID or partnerID",
+//       });
+//       return; // No need to keep the message channel open
+//     }
+
+//     acceptOffer(offerID, partnerID)
+//       .then((res) => {
+//         console.log(res, "res");
+//         sendResponse({ success: true, data: res });
+//       })
+//       .catch((err) => {
+//         sendResponse({ success: false, error: err });
+//       });
+
+//     return true; // Tell Chrome this is async
+//   }
+// });
+
+// const acceptOffer = (_offerID, _partnerID) => {
+//   return new Promise((_resolve, _reject) => {
+//     chrome.storage.local.get(['steamSessionID'], ({ steamSessionID }) => {
+//       console.log(steamSessionID, "Steam Session ID");
+//       _resolve('Success');
+//     });
+//   });
+// };
+
+
+// const acceptOffer = (offerID, partnerID) => {
+//   return new Promise((resolve, reject) => {
+//     chrome.storage.local.get(['steamSessionID'], ({ steamSessionID }) => {
+//       const myHeaders = new Headers();
+//       myHeaders.append('Content-Type', 'application/x-www-form-urlencoded; charset=UTF-8');
+
+//       const request = new Request(`https://steamcommunity.com/tradeoffer/${offerID}/accept`,
+//         {
+//           method: 'POST',
+//           headers: myHeaders,
+//           referrer: `https://steamcommunity.com/tradeoffer/${offerID}/`,
+//           body: `sessionid=${steamSessionID}&serverid=1&tradeofferid=${offerID}&partner=${partnerID}&captcha=`,
+//         });
+
+//       fetch(request).then((response) => {
+//         if (!response.ok) {
+//           reject({ status: response.status, statusText: response.statusText });
+//         } else return response.json();
+//       }).then(resolve).catch(reject);
+//     });
+//   });
+// };
+
+
+// Helper to get Steam cookies
+// function getSteamCookies(callback) {
+//   chrome.cookies.getAll({ domain: ".steamcommunity.com" }, (cookies) => {
+//     const cookieHeader = cookies.map(c => `${c.name}=${c.value}`).join("; ");
+//     callback(cookieHeader);
+//   });
+// }
+
+// function acceptOffer(offerID, partnerID) {
+//   return new Promise((resolve, reject) => {
+//     if (!offerID || !partnerID) {
+//       return reject("Missing offerID or partnerID");
+//     }
+
+//     chrome.storage.local.get(['steamSessionID'], ({ steamSessionID }) => {
+//       if (!steamSessionID) {
+//         return reject("Missing steamSessionID");
+//       }
+
+//       getSteamCookies((cookieHeader) => {
+//         const headers = new Headers();
+//         headers.append('Content-Type', 'application/x-www-form-urlencoded; charset=UTF-8');
+//         headers.append('Cookie', cookieHeader);
+
+//         const body = `sessionid=${steamSessionID}&serverid=1&tradeofferid=${offerID}&partner=${partnerID}&captcha=`;
+
+//         const request = new Request(`https://steamcommunity.com/tradeoffer/${offerID}/accept`, {
+//           method: 'POST',
+//           headers,
+//           referrer: `https://steamcommunity.com/tradeoffer/${offerID}/`,
+//           body,
+//         });
+
+//         fetch(request)
+//           .then((res) => {
+//             if (!res.ok) {
+//               reject({ status: res.status, statusText: res.statusText });
+//             } else {
+//               return res.json();
+//             }
+//           })
+//           .then(resolve)
+//           .catch(reject);
+//       });
+//     });
+//   });
+// }
+
+
+// const acceptOffer = (offerID, partnerID) => {
+//   return new Promise((resolve, reject) => {
+//     chrome.storage.local.get(['steamSessionID'], ({ steamSessionID }) => {
+//       if (!steamSessionID) {
+//         reject("steamSessionID is missing");
+//         return;
+//       }
+
+//       const myHeaders = new Headers();
+//       myHeaders.append('Content-Type', 'application/x-www-form-urlencoded; charset=UTF-8');
+
+//       chrome.cookies.getAll({ domain: ".steamcommunity.com" }, (cookies) => {
+//         const cookieHeader = cookies.map(c => `${c.name}=${c.value}`).join("; ");
+//         myHeaders.append('Cookie', cookieHeader);
+
+//         const request = new Request(`https://steamcommunity.com/tradeoffer/${offerID}/accept`, {
+//           method: 'POST',
+//           headers: myHeaders,
+//           referrer: `https://steamcommunity.com/tradeoffer/${offerID}/`,
+//           body: `sessionid=${steamSessionID}&serverid=1&tradeofferid=${offerID}&partner=${partnerID}&captcha=`,
+//           credentials: 'include',
+//         });
+
+//         fetch(request).then((response) => {
+//           if (!response.ok) {
+//             reject({ status: response.status, statusText: response.statusText });
+//           } else return response.json();
+//         }).then(resolve).catch(reject);
+//       });
+//     });
+//   });
+// };
+

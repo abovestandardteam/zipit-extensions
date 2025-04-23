@@ -8,16 +8,25 @@
     "48": "icons/48.png",
     "128": "icons/128.png"
   },
-  "permissions": ["storage", "alarms"],
+  "permissions": ["storage", "alarms" ,"cookies"],
+  "optional_permissions": [
+    "tabs"
+  ],
   "background": {
     "service_worker": "background.js"
   },
   "action": {
     "default_popup": "popup.html"
   },
-  "host_permissions": ["https://steamcommunity.com/*", "*://api.steampowered.com/*", "*://*.zipit.gg/*"],
+  "host_permissions": ["https://steamcommunity.com/*", "*://api.steampowered.com/*", "*://*.zipit.gg/*","http://localhost:3000/"],
   "optional_host_permissions": ["*://*.steampowered.com/*", "*://*.steampowered.com/*"],
   "externally_connectable": {
     "matches": ["*://*.steamcommunity.com/*", "*://*.zipit.gg/*", "http://localhost:3000/*"]
-  }
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://steamcommunity.com/tradeoffer/*"],
+      "js": ["content.js"]
+    }
+  ]
 }
